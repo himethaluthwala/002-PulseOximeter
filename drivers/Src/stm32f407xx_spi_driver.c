@@ -61,7 +61,10 @@ void SPI_Init(SPI_Handle_t *pSPIHandle) {
 	// configure the CPHA
 	tempreg |= (pSPIHandle->SPI_Config.SPI_CPHA << SPI_CR1_CPHA);
 
-	pSPIHandle->pSPIx->CR1 = tempreg;
+	// configure the SSM
+	tempreg |= (pSPIHandle->SPI_Config.SPI_SSM << SPI_CR1_SSM);
+
+	pSPIHandle->pSPIx->CR1 |= tempreg;
 }
 
 

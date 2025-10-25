@@ -37,8 +37,8 @@ typedef struct
 
 typedef struct
 {
-	GPIO_RegDef_t *pGPIOx;					// pointer to hold the base address of GPIO peripheral
-	GPIO_PinConfig_t GPIO_PinConfig;		// structure that holds GPIO pin configuration settings
+	GPIO_RegDef_t 		*pGPIOx;			// pointer to hold the base address of GPIO peripheral
+	GPIO_PinConfig_t 	GPIO_PinConfig;		// structure that holds GPIO pin configuration settings
 }GPIO_Handle_t;
 
 

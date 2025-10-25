@@ -23,6 +23,7 @@
  */
 
 void GPIO_Init(GPIO_Handle_t *pGPIOHandle) {
+
 	uint32_t temp = 0;
 
 	GPIO_PeriClockControl(pGPIOHandle->pGPIOx, ENABLE);

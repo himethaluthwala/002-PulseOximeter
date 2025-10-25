@@ -1,3 +1,0 @@
-../drivers/Src/ssd1306_driver.c:28:6:SSD1306_Init	16	static
-../drivers/Src/ssd1306_driver.c:61:6:SSD1306_SendCommand	16	static
-../drivers/Src/ssd1306_driver.c:93:6:SSD1306_SendData	24	static
