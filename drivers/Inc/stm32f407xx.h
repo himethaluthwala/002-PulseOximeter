@@ -8,8 +8,11 @@
 #ifndef INC_STM32F407XX_H_
 #define INC_STM32F407XX_H_
 
+
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
+//#include "core_cm4.h"
 
 
 /********************************************************************************/
@@ -144,38 +147,21 @@ typedef struct
 } SPI_RegDef_t;
 
 
-/* ADC */
+/* I2C */
 
 typedef struct
 {
-	volatile uint32_t SR;						/* ADC status register 							Offset: 0x00 */
-	volatile uint32_t CR1;						/* ADC control register 1						Offset: 0x04 */
-	volatile uint32_t CR2;						/* ADC control register 2						Offset: 0x08 */
-	volatile uint32_t SMPR1;					/* ADC sample time register	1				 	Offset: 0x0C */
-	volatile uint32_t SMPR2;					/* ADC sample time register	2					Offset: 0x10 */
-	volatile uint32_t JOFR1;					/* ADC injected channel data offset register 1	Offset: 0x14 */
-	volatile uint32_t JOFR2;					/* ADC injected channel data offset register 2	Offset: 0x18 */
-	volatile uint32_t JOFR3;					/* ADC injected channel data offset register 3	Offset: 0x1C */
-	volatile uint32_t JOFR4;					/* ADC injected channel data offset register 4  Offset: 0x20 */
-	volatile uint32_t HTR;						/* ADC watchdog higher threshold register	 	Offset: 0x24 */
-	volatile uint32_t LTR;						/* ADC watchdog higher threshold register	 	Offset: 0x28 */
-	volatile uint32_t SQR1;						/* ADC regular sequence register 1			 	Offset: 0x2C */
-	volatile uint32_t SQR2;						/* ADC regular sequence register 2			 	Offset: 0x30 */
-	volatile uint32_t SQR3;						/* ADC regular sequence register 3			 	Offset: 0x34 */
-	volatile uint32_t JSQR;						/* ADC injected sequence register			 	Offset: 0x38 */
-	volatile uint32_t JDR1;						/* ADC injected data register 1			 		Offset: 0x3C */
-	volatile uint32_t JDR2;						/* ADC injected data register 2				 	Offset: 0x40 */
-	volatile uint32_t JDR3;						/* ADC injected data register 3				 	Offset: 0x44 */
-	volatile uint32_t JDR4;						/* ADC injected data register 4				 	Offset: 0x48 */
-	volatile uint32_t DR;						/* ADC regular data register				 	Offset: 0x4C */
-} ADC_RegDef_t;
-
-typedef struct
-{
-	volatile uint32_t CSR;						/* ADC common status register 					Offset: 0x00 */
-	volatile uint32_t CCR;						/* ADC common control register 					Offset: 0x04 */
-	volatile uint32_t CDR;						/* ADC common data register 					Offset: 0x08 */
-}ADC_Common_RegDef_t;
+	volatile uint32_t CR1;						/* I2C control register 1						Offset: 0x00 */
+	volatile uint32_t CR2;						/* I2C control register 2						Offset: 0x04 */
+	volatile uint32_t OAR1;						/* I2C own address register	1					Offset: 0x08 */
+	volatile uint32_t OAR2;						/* I2C own address register	2				 	Offset: 0x0C */
+	volatile uint32_t DR;						/* I2C data register							Offset: 0x10 */
+	volatile uint32_t SR1;						/* I2C status register 1						Offset: 0x14 */
+	volatile uint32_t SR2;						/* I2C status register 2						Offset: 0x18 */
+	volatile uint32_t CCR;						/* I2C clock control register					Offset: 0x1C */
+	volatile uint32_t TRISE;					/* I2C TRISE register						 	Offset: 0x20 */
+	volatile uint32_t FLTR;						/* I2C FLTR register						 	Offset: 0x20 */
+} I2C_RegDef_t;
 
 
 /* Reset and Clock Control (RCC) */
@@ -273,12 +259,11 @@ typedef struct
 #define SPI3				((SPI_RegDef_t*) SPI3_BASEADDR)
 
 
-/* ADC */
+/* I2C */
 
-#define ADC1				((ADC_RegDef_t*) ADC1_BASEADDR)
-#define ADC2				((ADC_RegDef_t*) ADC2_BASEADDR)
-#define ADC3				((ADC_RegDef_t*) ADC3_BASEADDR)
-#define ADC_COMMON			((ADC_Common_RegDef_t*) ADC_COMMON_BASEADDR)
+#define I2C1				((I2C_RegDef_t*) I2C1_BASEADDR)
+#define I2C2				((I2C_RegDef_t*) I2C2_BASEADDR)
+#define I2C3				((I2C_RegDef_t*) I2C3_BASEADDR)
 
 
 /* Reset and Clock Control (RCC) */
@@ -323,11 +308,11 @@ typedef struct
 #define SPI3_PCLK_EN()		( RCC->APB1ENR |= (1 << 15) )
 
 
-/* ADC */
+/* I2C */
 
-#define ADC1_PCLK_EN()		( RCC->APB2ENR |= (1 << 8) )
-#define ADC2_PCLK_EN()		( RCC->APB2ENR |= (1 << 9) )
-#define ADC3_PCLK_EN()		( RCC->APB2ENR |= (1 << 10) )
+#define I2C1_PCLK_EN()		( RCC->APB1ENR |= (1 << 21) )
+#define I2C2_PCLK_EN()		( RCC->APB1ENR |= (1 << 22) )
+#define I2C3_PCLK_EN()		( RCC->APB1ENR |= (1 << 23) )
 
 
 /* SYSCFG */
@@ -362,11 +347,11 @@ typedef struct
 #define SPI3_PCLK_DI()		( RCC->APB1ENR &= ~(1 << 15) )
 
 
-/* ADC */
+/* I2C */
 
-#define ADC1_PCLK_DI()		( RCC->APB2ENR &= ~(1 << 8) )
-#define ADC2_PCLK_DI()		( RCC->APB2ENR &= ~(1 << 9) )
-#define ADC3_PCLK_DI()		( RCC->APB2ENR &= ~(1 << 10) )
+#define I2C1_PCLK_DI()		( RCC->APB1ENR &= ~(1 << 21) )
+#define I2C2_PCLK_DI()		( RCC->APB1ENR &= ~(1 << 22) )
+#define I2C3_PCLK_DI()		( RCC->APB1ENR &= ~(1 << 23) )
 
 
 /* SYSCFG */
@@ -511,93 +496,103 @@ typedef struct
 
 /********************************************************************************/
 
-/* Bit position definitions of ADC peripheral */
+/* Bit position definitions of I2C peripheral */
 
 /********************************************************************************/
 
-/* Status register */
+/* CR1 register */
 
-#define ADC_SR_AWD				0
-#define ADC_SR_EOC				1
-#define ADC_SR_JEOC				2
-#define ADC_SR_JSTRT			3
-#define ADC_SR_STRT				4
-#define ADC_SR_OVR				5
-
-
-/* Control register 1 */
-
-#define ADC_CR1_AWDCH			0
-#define ADC_CR1_EOCIE			5
-#define ADC_CR1_AWDIE			6
-#define ADC_CR1_JEOCIE			7
-#define ADC_CR1_SCAN			8
-#define ADC_CR1_AWDSGL			9
-#define ADC_CR1_JAUTO			10
-#define ADC_CR1_DISCEN			11
-#define ADC_CR1_JDISCEN			12
-#define ADC_CR1_DISCNUM			13
-#define ADC_CR1_JAWDEN			22
-#define ADC_CR1_AWDEN			23
-#define ADC_CR1_RES				24
-#define ADC_CR1_OVRIE			26
+#define I2C_CR1_PE				0
+#define I2C_CR1_SMBUS			1
+#define I2C_CR1_SMBTYPE			3
+#define I2C_CR1_ENARP			4
+#define I2C_CR1_ENPEC			5
+#define I2C_CR1_ENGC			6
+#define I2C_CR1_NOSTRETCH		7
+#define I2C_CR1_START			8
+#define I2C_CR1_STOP			9
+#define I2C_CR1_ACK				10
+#define I2C_CR1_POS				11
+#define I2C_CR1_PEC				12
+#define I2C_CR1_ALERT			13
+#define I2C_CR1_SWRST			15
 
 
-/* Control register 2 */
+/* CR2 register */
 
-#define ADC_CR2_ADON			0
-#define ADC_CR2_CONT			1
-#define ADC_CR2_DMA				8
-#define ADC_CR2_DDS				9
-#define ADC_CR2_EOCS			10
-#define ADC_CR2_ALIGN			11
-#define ADC_CR2_JEXTSEL			16
-#define ADC_CR2_JEXTEN			20
-#define ADC_CR2_JSWSTART		22
-#define ADC_CR2_EXTSEL			24
-#define ADC_CR2_EXTEN			28
-#define ADC_CR2_SWSTART			30
+#define I2C_CR2_FREQ			0
+#define I2C_CR2_ITERREN			8
+#define I2C_CR2_ITEVTEN			9
+#define I2C_CR2_ITBUFEN			10
+#define I2C_CR2_DMAEN			11
+#define I2C_CR2_LAST			12
 
 
-/* Sample time register 1 */
+/* Status register 1 */
 
-#define ADC_SMPR1_SMP10			0
-#define ADC_SMPR1_SMP11			3
-#define ADC_SMPR1_SMP12			6
-#define ADC_SMPR1_SMP13			9
-#define ADC_SMPR1_SMP14			12
-#define ADC_SMPR1_SMP15			15
-#define ADC_SMPR1_SMP16			18
-#define ADC_SMPR1_SMP17			21
-#define ADC_SMPR1_SMP18			24
-
-
-/* Sample time register 2 */
-
-#define ADC_SMPR2_SMP0			0
-#define ADC_SMPR2_SMP1			3
-#define ADC_SMPR2_SMP2			6
-#define ADC_SMPR2_SMP3			9
-#define ADC_SMPR2_SMP4			12
-#define ADC_SMPR2_SMP5			15
-#define ADC_SMPR2_SMP6			18
-#define ADC_SMPR2_SMP7			21
-#define ADC_SMPR2_SMP8			24
-#define ADC_SMPR2_SMP9			27
+#define I2C_SR1_SB				0
+#define I2C_SR1_ADDR			1
+#define I2C_SR1_BTF				2
+#define I2C_SR1_ADD10			3
+#define I2C_SR1_STOPF			4
+#define I2C_SR1_RXNE			6
+#define I2C_SR1_TXE				7
+#define I2C_SR1_BERR			8
+#define I2C_SR1_ARLO			9
+#define I2C_SR1_AF				10
+#define I2C_SR1_OVR				11
+#define I2C_SR1_PECERR			12
+#define I2C_SR1_TIMEOUT			14
+#define I2C_SR1_SMBALERT		15
 
 
-/* Regular sequence register 1 */
+/* Status register 2 */
 
-#define ADC_SQR1_SQ13			0
-#define ADC_SQR1_SQ14			5
-#define ADC_SQR1_SQ15			10
-#define ADC_SQR1_SQ16			15
-#define ADC_SQR1_L				20
+#define I2C_SR2_MSL				0
+#define I2C_SR2_BUSY			1
+#define I2C_SR2_TRA				2
+#define I2C_SR2_GENCALL			4
+#define I2C_SR2_SMBDEAFULT		5
+#define I2C_SR2_SBHOST			6
+#define I2C_SR2_DUALF			7
+#define I2C_SR2_PEC				8
+
+
+/* Clock control register */
+
+#define I2C_CCR_CCR				0
+#define I2C_CCR_DUTY			14
+#define I2C_CCR_FS				15
 
 
 /********************************************************************************/
 
-/* Other useful macros */
+/* Macros to reset I2Cx peripherals */
+
+/********************************************************************************/
+
+#define I2C1_REG_RESET()			do{ (RCC->APB1RSTR |= (1 << 21)); RCC->APB1RSTR &= ~(1 << 21);} while(0)
+#define I2C2_REG_RESET()			do{ (RCC->APB1RSTR |= (1 << 22)); RCC->APB1RSTR &= ~(1 << 22);} while(0)
+#define I2C3_REG_RESET()			do{ (RCC->APB1RSTR |= (1 << 23)); RCC->APB1RSTR &= ~(1 << 23);} while(0)
+
+
+/********************************************************************************/
+
+/* I2C IRQ (Interrupt request) numbers */
+
+/********************************************************************************/
+
+#define IRQ_NO_I2C1_EV			31
+#define IRQ_NO_I2C1_ER			32
+#define IRQ_NO_I2C2_EV			33
+#define IRQ_NO_I2C2_ER			34
+#define IRQ_NO_I2C3_EV			72
+#define IRQ_NO_I2C3_ER			73
+
+
+/********************************************************************************/
+
+/* Other macros */
 
 /********************************************************************************/
 
@@ -609,12 +604,17 @@ typedef struct
 #define FLAG_RESET			RESET
 #define LOW					0
 #define HIGH				1
+#define WRITE				0
+#define READ				1
 
 
 /********************************************************************************/
 
 #include "stm32f407xx_gpio_driver.h"
 #include "stm32f407xx_spi_driver.h"
+#include "stm32f407xx_i2c_driver.h"
+//#include "ssd1306_driver.h"
+#include "max30102_driver.h"
 
 
 #endif /* INC_STM32F407XX_H_ */

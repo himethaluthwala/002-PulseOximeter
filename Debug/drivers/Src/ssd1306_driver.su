@@ -1,0 +1,10 @@
+../drivers/Src/ssd1306_driver.c:99:6:delay	24	static,ignoring_inline_asm
+../drivers/Src/ssd1306_driver.c:125:13:CommandConfig	24	static
+../drivers/Src/ssd1306_driver.c:160:13:BufferDrawChar	32	static
+../drivers/Src/ssd1306_driver.c:186:13:UpdateScreen	16	static
+../drivers/Src/ssd1306_driver.c:225:23:GetGlyph	16	static
+../drivers/Src/ssd1306_driver.c:251:6:SSD1306_Init	16	static
+../drivers/Src/ssd1306_driver.c:281:6:SSD1306_PowerDown	16	static
+../drivers/Src/ssd1306_driver.c:313:6:SSD1306_DisplayValue	24	static
+../drivers/Src/ssd1306_driver.c:344:6:SSD1306_SendCommand	16	static
+../drivers/Src/ssd1306_driver.c:371:6:SSD1306_SendData	24	static

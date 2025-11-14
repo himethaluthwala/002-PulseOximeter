@@ -8,7 +8,10 @@
 #ifndef INC_SSD1306_DRIVER_H_
 #define INC_SSD1306_DRIVER_H_
 
+
 #include "stm32f407xx.h"
+
+#define __NOP()         __asm volatile ("nop")
 
 
 /********************************************************************************/
@@ -17,20 +20,22 @@
 
 /********************************************************************************/
 
-typedef struct {
-
+typedef struct
+{
     SPI_Handle_t    SPIHandle;
     GPIO_Handle_t	SCLK_Handle;
     GPIO_Handle_t	SDIN_Handle;
     GPIO_Handle_t   RESET_Handle;
     GPIO_Handle_t   DC_Handle;
     GPIO_Handle_t   CS_Handle;
-
 }SSD1306_Handle_t;
 
 
 #define SSD1306_WIDTH  				128
 #define SSD1306_HEIGHT 				64
+
+#define FONT16X24_WIDTH				16
+#define FONT16X24_HEIGHT			3
 
 
 /********************************************************************************/
@@ -44,8 +49,8 @@ typedef struct {
 
 #define SET_CONTRAST_CONTROL		0x81
 
-#define SEGMENT_REMAP_DEFAULT		0xA0
-#define SEGMENT_REMAP_MIRROR		0xA1
+#define SEG_REMAP_DEFAULT			0xA0
+#define SEG_REMAP_MIRROR			0xA1
 
 #define SET_MULTIPLEX_RATIO			0xA8
 
@@ -55,11 +60,12 @@ typedef struct {
 #define DISPLAY_RAM					0xA4
 #define ENTIRE_DISPLAY_ON			0xA5
 
-#define DISPLAY_OFFSET				0xD3
+#define SET_DISPLAY_OFFSET			0xD3
 
 #define SET_START_LINE				0x40
 
 #define COM_OUTPUT_SCAN_DEFAULT		0xC0
+#define COM_OUTPUT_SCAN_MIRROR		0xC8
 
 #define DISPLAY_CLK_DIV_RATIO		0xD5
 
@@ -73,7 +79,7 @@ typedef struct {
 #define VCHOMH_LOW					0x00
 #define VCOMH_DEFAULT				0x20
 #define VCOMH_HIGH					0x30
-¬
+
 #define SET_CHARGE_PUMP				0x8D
 #define ENABLE_CHARGE_PUMP			0x14
 #define DISABLE_CHARGE_PUMP			0x10
@@ -96,13 +102,16 @@ typedef struct {
 /* Main */
 
 void SSD1306_Init(SSD1306_Handle_t *pHandle);
+void SSD1306_PowerDown(SSD1306_Handle_t *pHandle);
 
-void SSD1306_UpdateScreen(SSD1306_Handle_t *pHandle);
 void SSD1306_DisplayValue(SSD1306_Handle_t *pHandle, uint8_t value);
 
 void SSD1306_SendCommand(SSD1306_Handle_t *pHandle, uint8_t command);
 void SSD1306_SendData(SSD1306_Handle_t *pHandle, uint8_t *pData, uint32_t Len);
 
+/* Other */
+
+void delay(uint32_t msDelay);
 
 
 #endif /* INC_SSD1306_DRIVER_H_ */

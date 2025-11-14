@@ -38,10 +38,10 @@ typedef struct
 
 typedef struct
 {
-	SPI_RegDef_t 	*pSPIx;					// pointer to hold the base address of SPI peripheral
+	SPI_RegDef_t* 	pSPIx;					// pointer to hold the base address of SPI peripheral
 	SPI_Config_t 	SPI_Config;				// structure that holds SPI configuration settings
-	uint8_t 		*pTxBuffer;				// pointer to store the Tx buffer address
-	uint8_t 		*pRxBuffer;				// pointer to store the Rx buffer address
+	uint8_t* 		pTxBuffer;				// pointer to store the Tx buffer address
+	uint8_t* 		pRxBuffer;				// pointer to store the Rx buffer address
 	uint32_t 		TxLen;					// variable to hold the Tx length
 	uint32_t 		RxLen;					// variable to hold the Rx length
 	uint8_t 		TxState;				// variable to hold the Tx state

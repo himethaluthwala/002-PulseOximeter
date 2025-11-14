@@ -193,9 +193,8 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len) {
 			// 16 bit DFF
 			// load the data into the DR
 			pSPIx->DR = *((uint16_t*)pTxBuffer);
-			Len--;
-			Len--;		// twice since 2 bytes of data were sent out.
-			(uint16_t*)pTxBuffer++;		// increment to get next byte of data.
+			Len -= 2;			// twice since 2 bytes of data were sent out.
+			pTxBuffer += 2;		// increment twice to get next byte of data.
 		} else {
 			// 8 bit DFF
 			// load the data into the DR
@@ -204,6 +203,13 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len) {
 			pTxBuffer++;
 		}
 	}
+
+	// wait until not busy
+	while (SPI_GetFlagStatus(pSPIx, SPI_BUSY_FLAG));
+
+	// clear OVR (needed for transmit only SPI)
+	SPI_ClearOVRFlag(pSPIx);
+
 }
 
 
@@ -393,7 +399,7 @@ void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi) {
 /*
  * Function name:			SPI_SSIConfig
  *
- * Description:				Configures the SSOE bit
+ * Description:				Configures the SSI bit
  *
  * Parameter 1:				Base address of the SPI peripheral
  * Parameter 2:				Enable or disable

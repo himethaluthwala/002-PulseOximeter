@@ -9,7 +9,10 @@
 #include <ssd1306_driver.h>
 
 
-static void SSD1306_Config(SSD1306_Handle_t *pHandle);
+static void CommandConfig(SSD1306_Handle_t *pHandle);
+static void BufferDrawChar(const uint8_t* glyph, uint8_t col, uint8_t page);
+static void UpdateScreen(SSD1306_Handle_t* pHandle);
+static const uint8_t* GetGlyph(char c);
 
 static uint8_t ssd1306_buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 8];
 
@@ -17,43 +20,217 @@ static const uint8_t Init_Seq[] = {
 
 	SET_DISPLAY_OFF,
 	DISPLAY_CLK_DIV_RATIO, 0x80,
-	SET_MULTIPLEX_RATIO, 0x3F, 		// 63
-	SET_CONTRAST_CONTROL, 0x7F,
-	SEGMENT_REMAP_DEFAULT,
-	COM_OUTPUT_SCAN_DEFAULT,
-	COM_HARDWARE_CONFIG, COM_HW_SEQ_DI_LR,
-	SET_VCOMH_DESELECT, VCOMH_DEFAULT, 		// ~0.77 x Vcc
-	DISPLAY_OFFSET, 0x00,
+	SET_MULTIPLEX_RATIO, 0x3F, 				// 63
+	SET_DISPLAY_OFFSET, 0x00,
 	SET_START_LINE,
-	SET_MEM_ADDR_MODE, 0x00, 		// horizontal
 	SET_CHARGE_PUMP, ENABLE_CHARGE_PUMP,
+	SET_MEM_ADDR_MODE, 0x00, 				// horizontal
+	SEG_REMAP_MIRROR,
+	COM_OUTPUT_SCAN_MIRROR,
+	COM_HARDWARE_CONFIG, COM_HW_SEQ_EN_LR,
+	SET_CONTRAST_CONTROL, 0x7F,
 	SET_PRE_CHARGE, PRE_CHARGE_STABLE,
-	DISPLAY_NORMAL,
+	SET_VCOMH_DESELECT, VCOMH_DEFAULT, 		// ~0.77 x Vcc
 	DISPLAY_RAM,
-	SET_DISPLAY_ON
+	DISPLAY_NORMAL
 
 };
 
 static const uint8_t Font16x24[][48] = {
 
-	[0] = {},		// bitmap for 0
-	[1] = {},		// bitmap for 1
-	[2] = {},
-	[3] = {},
-	[4] = {},
-	[5] = {},
-	[6] = {},
-	[7] = {},
-	[8] = {},
-	[9] = {},
-	[10] = {},
+	// bitmap for 0
+	{0x00,0xFF,0xFF,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0xFF,0xFF,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x3F,0x3F,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for 1
+	{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x03,0x03,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for 2
+	{0x00,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0xF8,0xF8,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x1F,0x1F,0x00,0x00,0x00,0x00,
+	 0x00,0x3F,0x3F,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x00,0x00,0x00,0x00},
+
+	// bitmap for 3
+	{0x00,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for 4
+	{0x00,0xFF,0xFF,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x07,0x07,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for 5
+	{0x00,0xFF,0xFF,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x00,0x00,0x00,0x00,
+	 0x00,0x0F,0x0F,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0xFC,0xFC,0x00,0x00,0x00,0x00,
+	 0x00,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for 6
+	{0x00,0xFF,0xFF,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x00,0x00,0x00,0x00,
+	 0x00,0xFF,0xFF,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0xFC,0xFC,0x00,0x00,0x00,0x00,
+	 0x00,0x3F,0x3F,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for 7
+	{0x00,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for 8
+	{0x00,0xFF,0xFF,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0xFF,0xFF,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x3F,0x3F,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for 9
+	{0x00,0xFF,0xFF,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x0F,0x0F,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0x0C,0xFF,0xFF,0x00,0x00,0x00,0x00,
+	 0x00,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x30,0x3F,0x3F,0x00,0x00,0x00,0x00},
+
+	// bitmap for %
+	{0x00,0x0E,0x0E,0x0E,0x00,0x00,0x00,0x80,0xE0,0x78,0x1F,0x07,0x00,0x00,0x00,0x00,
+	 0x00,0x00,0x00,0x80,0xE0,0x78,0x1E,0x07,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	 0x00,0x38,0x3E,0x07,0x01,0x00,0x00,0x00,0x00,0x1C,0x1C,0x1C,0x00,0x00,0x00,0x00}
 
 };
 
 
-void delay(uint32_t msDelay) { 		// based on 16 MHz MCU clock
+void delay(uint32_t msDelay) {
 
-	for (uint32_t i = (msDelay*1250); i > 0; i--);
+    volatile uint32_t i;
+
+    while (msDelay--)
+    {
+        for (i = 0; i < 16000; i++) {
+            __NOP();  // one cycle no-op to make sure compiler can’t remove it
+        }
+    }
+
+}
+
+/*
+ * Function name:		 	Command_Config
+ *
+ * Description:				Configures the OLED screen by sending the set-up commands
+ *
+ * Parameter 1:				Pointer to the handle structure for the peripheral
+ *
+ * Return:					None
+ *
+ * Notes:					None
+ *
+ */
+
+static void CommandConfig(SSD1306_Handle_t *pHandle) {
+
+	// pull CS to low to select OLED as slave
+	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, LOW);
+
+	for (uint32_t i = 0; i < sizeof(Init_Seq); i++) {
+		SSD1306_SendCommand(pHandle, Init_Seq[i]);
+	}
+
+	delay(100);		// stabilisation period
+
+	//turn display on
+	//SSD1306_SendCommand(pHandle, SET_DISPLAY_ON);
+
+	// pull CS back to high
+	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, HIGH);
+
+}
+
+
+/*
+ * Function name:		 	BufferDrawChar
+ *
+ * Description:				Writes a glyph to the buffer
+ *
+ * Parameter 1:				Glyph from Font bitmap
+ * Parameter 2:				Horizontal coordinate (COL 0 - 128)
+ * Parameter 3:				Vertical coordinate (PAGE 0 - 8)
+ *
+ * Return:					None
+ *
+ * Notes:					None
+ *
+ */
+
+static void BufferDrawChar(const uint8_t* glyph, uint8_t col, uint8_t page) {
+
+	for (uint8_t page_offset = 0; page_offset < FONT16X24_HEIGHT; page_offset++) {
+		for (uint8_t col_offset = 0; col_offset < FONT16X24_WIDTH; col_offset++) {
+			uint32_t buffer_index = (col + col_offset) + ((page + page_offset) * SSD1306_WIDTH);
+			uint32_t glyph_index = (page_offset * FONT16X24_WIDTH) + col_offset; 		// page-major format
+			ssd1306_buffer[buffer_index] = glyph[glyph_index];
+		}
+	}
+
+}
+
+
+/*
+ * Function name:		 	UpdateScreen
+ *
+ * Description:				Updates the GDDRAM according to the current buffer contents
+ *
+ * Parameter 1:				Pointer to the handle structure for the peripheral
+ *
+ * Return:					None
+ *
+ * Notes:					This is a blocking call.
+ *
+ */
+
+static void UpdateScreen(SSD1306_Handle_t* pHandle) {
+
+	// pull CS to low to select OLED as slave
+	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, LOW);
+
+	// reset column and page address pointers
+	SSD1306_SendCommand(pHandle, SET_COL_ADDR);
+	SSD1306_SendCommand(pHandle, 0x00);
+	SSD1306_SendCommand(pHandle, 0x7F);
+
+	SSD1306_SendCommand(pHandle, SET_PAGE_ADDR);
+	SSD1306_SendCommand(pHandle, 0x00);
+	SSD1306_SendCommand(pHandle, 0x07);
+
+	// send buffer to the GDDRAM
+	SSD1306_SendData(pHandle, ssd1306_buffer, sizeof(ssd1306_buffer));
+
+	//turn display on
+	SSD1306_SendCommand(pHandle, SET_DISPLAY_ON);
+
+	// pull CS back to high
+	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, HIGH);
+
+}
+
+
+/*
+ * Function name:		 	GetGlyph
+ *
+ * Description:				Returns the specified glyph bitmap from Font16x24
+ *
+ * Parameter 1:				Glyph character
+ *
+ * Return:					const uint8_t* (glyph bitmap)
+ *
+ * Notes:					None
+ *
+ */
+
+static const uint8_t* GetGlyph(char c) {
+
+	if (c >= '0' && c <= '9') {
+		return Font16x24[c - '0'];
+	}
+	if (c == '%') {
+		return Font16x24[10];
+	}
+	return NULL;
 
 }
 
@@ -71,40 +248,50 @@ void delay(uint32_t msDelay) { 		// based on 16 MHz MCU clock
  *
  */
 
-void SSD1306_Init(SSD1306_Handle_t *pHandle) {
+void SSD1306_Init(SSD1306_Handle_t* pHandle) {
 
 	// toggle RESET pin
 	GPIO_WriteToOuputPin(pHandle->RESET_Handle.pGPIOx, pHandle->RESET_Handle.GPIO_PinConfig.GPIO_PinNumber, LOW);
 	delay(10);
 	GPIO_WriteToOuputPin(pHandle->RESET_Handle.pGPIOx, pHandle->RESET_Handle.GPIO_PinConfig.GPIO_PinNumber, HIGH);
 
-	// send set-up commands
 	delay(100);
-	SSD1306_Config(pHandle);
 
-	delay(100);		// stabilisation period
+	// send initialisation commands
+	CommandConfig(pHandle);
+
+	delay(100);
 
 }
 
 
 /*
- * Function name:		 	SSD1306_Config
+ * Function name:		 	SSD1306_PowerDown
  *
- * Description:				Configures the OLED screen by sending the set-up commands
+ * Description:				Powers down the OLED screen
  *
  * Parameter 1:				Pointer to the handle structure for the peripheral
  *
  * Return:					None
  *
- * Notes:					None
+ * Notes:					This is a blocking call
  *
  */
 
-static void SSD1306_Config(SSD1306_Handle_t *pHandle) {
+void SSD1306_PowerDown(SSD1306_Handle_t* pHandle) {
 
-	for (uint32_t i = 0; i < sizeof(Init_Seq); i++) {
-		SSD1306_SendCommand(pHandle, Init_Seq[i]);
-	}
+	// pull CS pin low to select OLED as slave
+	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, LOW);
+
+	// turn screen off
+	SSD1306_SendCommand(pHandle, SET_DISPLAY_OFF);
+
+	// turn charge pump off
+	SSD1306_SendCommand(pHandle, SET_CHARGE_PUMP);
+	SSD1306_SendCommand(pHandle, DISABLE_CHARGE_PUMP);
+
+	// pull CS pin back to high
+	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, HIGH);
 
 }
 
@@ -123,62 +310,18 @@ static void SSD1306_Config(SSD1306_Handle_t *pHandle) {
  *
  */
 
-void SSD1306_DisplayValue(SSD1306_Handle_t *pHandle, uint8_t value) {
+void SSD1306_DisplayValue(SSD1306_Handle_t* pHandle, uint8_t value) {
 
+    memset(ssd1306_buffer, 0x00, sizeof(ssd1306_buffer));
 
+    uint8_t tens = value / 10;
+    uint8_t ones = value % 10;
 
-}
+    BufferDrawChar(GetGlyph('0' + tens), 0, 0);
+    BufferDrawChar(GetGlyph('0' + ones), 17, 0);
+    BufferDrawChar(GetGlyph('%'), 34, 0);
 
-
-/*
- * Function name:		 	SSD1306_UpdateScreen
- *
- * Description:				Updates the GDDRAM according to the buffer contents
- *
- * Parameter 1:				Pointer to the handle structure for the peripheral
- *
- * Return:					None
- *
- * Notes:					This is a blocking call.
- *
- */
-
-void SSD1306_UpdateScreen(SSD1306_Handle_t *pHandle) {
-
-	// reset column and page address pointers
-	SSD1306_SendCommand(pHandle, SET_COL_ADDR);
-	SSD1306_SendCommand(pHandle, 0x00);
-	SSD1306_SendCommand(pHandle, 0x7F);
-
-	SSD1306_SendCommand(pHandle, SET_PAGE_ADDR);
-	SSD1306_SendCommand(pHandle, 0x00);
-	SSD1306_SendCommand(pHandle, 0x07);
-
-	// send buffer to the GDDRAM
-	SSD1306_SendData(pHandle, ssd1306_buffer, sizeof(ssd1306_buffer));
-
-}
-
-
-/*
- * Function name:		 	SSD1306_DrawChar
- *
- * Description:				Updates the GDDRAM according to the buffer contents
- *
- * Parameter 1:				Pointer to the handle structure for the peripheral
- * Parameter 2:				Glyph from Font bitmap
- * Parameter 3:				Horizontal coordinate
- * Parameter 4:				Vertical coordinate
- *
- * Return:					None
- *
- * Notes:					None
- *
- */
-
-void SSD1306_DrawChar(SSD1306_Handle_t *pHandle, const uint8_t glyph, uint8_t x, uint8_t y) {
-
-
+	UpdateScreen(pHandle);
 
 }
 
@@ -198,19 +341,13 @@ void SSD1306_DrawChar(SSD1306_Handle_t *pHandle, const uint8_t glyph, uint8_t x,
  */
 
 
-void SSD1306_SendCommand(SSD1306_Handle_t *pHandle, uint8_t command) {
+void SSD1306_SendCommand(SSD1306_Handle_t* pHandle, uint8_t command) {
 
 	// pull DC pin low for command
 	GPIO_WriteToOuputPin(pHandle->DC_Handle.pGPIOx, pHandle->DC_Handle.GPIO_PinConfig.GPIO_PinNumber, LOW);
 
-	// pull CS pin low to select OLED as slave
-	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, LOW);
-
 	// send command over SPI
 	SPI_SendData(pHandle->SPIHandle.pSPIx, &command, 1);
-
-	// pull CS back to high
-	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, HIGH);
 
 }
 
@@ -231,19 +368,13 @@ void SSD1306_SendCommand(SSD1306_Handle_t *pHandle, uint8_t command) {
  */
 
 
-void SSD1306_SendData(SSD1306_Handle_t *pHandle, uint8_t *pData, uint32_t Len) {
+void SSD1306_SendData(SSD1306_Handle_t* pHandle, uint8_t* pData, uint32_t Len) {
 
 	// pull DC pin high for data
 	GPIO_WriteToOuputPin(pHandle->DC_Handle.pGPIOx, pHandle->DC_Handle.GPIO_PinConfig.GPIO_PinNumber, HIGH);
 
-	// pull CS pin low to select OLED as slave
-	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, LOW);
-
 	// send data over SPI
 	SPI_SendData(pHandle->SPIHandle.pSPIx, pData, Len);
-
-	// pull CS back to high
-	GPIO_WriteToOuputPin(pHandle->CS_Handle.pGPIOx, pHandle->CS_Handle.GPIO_PinConfig.GPIO_PinNumber, HIGH);
 
 }
 

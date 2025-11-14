@@ -92,7 +92,7 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle) {
 	temp = 0;
 
 	//5. configure the alternate functionality
-	if (pGPIOHandle->GPIO_PinConfig.GPIO_PinAltFunMode == GPIO_MODE_ALTFN) {
+	if (pGPIOHandle->GPIO_PinConfig.GPIO_PinMode == GPIO_MODE_ALTFN) {
 		// configure the alternate function mode
 		uint8_t temp3, temp4;
 

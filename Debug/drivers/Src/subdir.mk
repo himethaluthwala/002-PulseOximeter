@@ -5,18 +5,24 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../drivers/Src/max30102_driver.c \
 ../drivers/Src/ssd1306_driver.c \
 ../drivers/Src/stm32f407xx_gpio_driver.c \
+../drivers/Src/stm32f407xx_i2c_driver.c \
 ../drivers/Src/stm32f407xx_spi_driver.c 
 
 OBJS += \
+./drivers/Src/max30102_driver.o \
 ./drivers/Src/ssd1306_driver.o \
 ./drivers/Src/stm32f407xx_gpio_driver.o \
+./drivers/Src/stm32f407xx_i2c_driver.o \
 ./drivers/Src/stm32f407xx_spi_driver.o 
 
 C_DEPS += \
+./drivers/Src/max30102_driver.d \
 ./drivers/Src/ssd1306_driver.d \
 ./drivers/Src/stm32f407xx_gpio_driver.d \
+./drivers/Src/stm32f407xx_i2c_driver.d \
 ./drivers/Src/stm32f407xx_spi_driver.d 
 
 
@@ -27,7 +33,7 @@ drivers/Src/%.o drivers/Src/%.su drivers/Src/%.cyclo: ../drivers/Src/%.c drivers
 clean: clean-drivers-2f-Src
 
 clean-drivers-2f-Src:
-	-$(RM) ./drivers/Src/ssd1306_driver.cyclo ./drivers/Src/ssd1306_driver.d ./drivers/Src/ssd1306_driver.o ./drivers/Src/ssd1306_driver.su ./drivers/Src/stm32f407xx_gpio_driver.cyclo ./drivers/Src/stm32f407xx_gpio_driver.d ./drivers/Src/stm32f407xx_gpio_driver.o ./drivers/Src/stm32f407xx_gpio_driver.su ./drivers/Src/stm32f407xx_spi_driver.cyclo ./drivers/Src/stm32f407xx_spi_driver.d ./drivers/Src/stm32f407xx_spi_driver.o ./drivers/Src/stm32f407xx_spi_driver.su
+	-$(RM) ./drivers/Src/max30102_driver.cyclo ./drivers/Src/max30102_driver.d ./drivers/Src/max30102_driver.o ./drivers/Src/max30102_driver.su ./drivers/Src/ssd1306_driver.cyclo ./drivers/Src/ssd1306_driver.d ./drivers/Src/ssd1306_driver.o ./drivers/Src/ssd1306_driver.su ./drivers/Src/stm32f407xx_gpio_driver.cyclo ./drivers/Src/stm32f407xx_gpio_driver.d ./drivers/Src/stm32f407xx_gpio_driver.o ./drivers/Src/stm32f407xx_gpio_driver.su ./drivers/Src/stm32f407xx_i2c_driver.cyclo ./drivers/Src/stm32f407xx_i2c_driver.d ./drivers/Src/stm32f407xx_i2c_driver.o ./drivers/Src/stm32f407xx_i2c_driver.su ./drivers/Src/stm32f407xx_spi_driver.cyclo ./drivers/Src/stm32f407xx_spi_driver.d ./drivers/Src/stm32f407xx_spi_driver.o ./drivers/Src/stm32f407xx_spi_driver.su
 
 .PHONY: clean-drivers-2f-Src
 
