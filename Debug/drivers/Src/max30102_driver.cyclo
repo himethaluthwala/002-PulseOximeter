@@ -1,0 +1,5 @@
+../drivers/Src/max30102_driver.c:16:13:WriteRegister	1
+../drivers/Src/max30102_driver.c:25:16:ReadRegister	1
+../drivers/Src/max30102_driver.c:36:13:ReadSample	1
+../drivers/Src/max30102_driver.c:60:6:MAX30102_Init	2
+../drivers/Src/max30102_driver.c:108:6:MAX30102_FIFORead	2

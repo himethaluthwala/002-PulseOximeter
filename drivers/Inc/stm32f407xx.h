@@ -614,7 +614,7 @@ typedef struct
 #include "stm32f407xx_spi_driver.h"
 #include "stm32f407xx_i2c_driver.h"
 //#include "ssd1306_driver.h"
-#include "max30102_driver.h"
+//#include "max30102_driver.h"
 
 
 #endif /* INC_STM32F407XX_H_ */
